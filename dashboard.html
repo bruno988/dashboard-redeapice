@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%231E3A5F'/><text x='50%25' y='54%25' font-size='38' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🤖</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rede Ápice — Dashboard TI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0B1628;--navy2:#112240;--blue:#2563EB;--blue2:#3B82F6;
+    --green:#10B981;--red:#EF4444;--orange:#F97316;--yellow:#F59E0B;
+    --purple:#8B5CF6;--white:#F0F6FF;--gray:#8899BB;
+    --border:rgba(186,215,255,0.08);--card:rgba(17,34,64,0.9);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 10% 0%,rgba(37,99,235,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 70% at 90% 100%,rgba(16,185,129,.07) 0%,transparent 60%);pointer-events:none;}
+  body::after{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(186,215,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(186,215,255,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+  header{position:sticky;top:0;z-index:100;background:rgba(11,22,40,.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+  .hdr{max-width:1440px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:white;box-shadow:0 0 20px rgba(37,99,235,.4);}
+  .logo-name{font-family:'Inter',sans-serif;font-weight:800;font-size:16px;}
+  .logo-sub{font-size:11px;color:var(--gray);}
+  .hdr-r{display:flex;align-items:center;gap:16px;}
+  .api-pill{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:5px 12px;border-radius:100px;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.08);color:var(--green);}
+  .api-pill.off{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:var(--red);}
+  .pulse{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+  .clock{font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);}
+  main{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:28px;}
+  .page-top{margin-bottom:24px;animation:fadeUp .5s ease both;}
+  .page-top h1{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(22px,3vw,36px);letter-spacing:-.02em;}
+  .page-top h1 em{font-style:normal;color:var(--blue2);}
+  .page-top p{color:var(--gray);font-size:13px;margin-top:4px;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px;}
+  .tab{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--gray);}
+  .tab:hover{color:var(--white);background:rgba(255,255,255,.07);}
+  .tab.active{background:var(--blue);border-color:var(--blue);color:white;box-shadow:0 0 14px rgba(37,99,235,.4);}
+  .view{display:none;}.view.active{display:block;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:20px;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;animation:fadeUp .5s ease both;}
+  .kpi:hover{transform:translateY(-2px);}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--blue));}
+  .kpi-icon{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:12px;}
+  .kpi-val{font-family:'Inter',sans-serif;font-weight:800;font-size:32px;line-height:1;}
+  .kpi-label{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:4px;}
+  .kpi-sub{font-size:11px;color:var(--gray);margin-top:6px;}
+  .shimmer{width:60px;height:32px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:960px){.g2,.g3{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;animation:fadeUp .5s ease both;}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .card-title{font-size:13px;font-weight:600;}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:'DM Mono',monospace;}
+  .b-green{background:rgba(16,185,129,.15);color:var(--green);}
+  .b-red{background:rgba(239,68,68,.15);color:var(--red);}
+  .b-blue{background:rgba(37,99,235,.15);color:var(--blue2);}
+  .b-yellow{background:rgba(245,158,11,.15);color:var(--yellow);}
+  .b-gray{background:rgba(136,153,187,.15);color:var(--gray);}
+  .b-orange{background:rgba(249,115,22,.15);color:var(--orange);}
+  .b-purple{background:rgba(139,92,246,.15);color:var(--purple);}
+  .bars{display:flex;flex-direction:column;gap:10px;}
+  .br{display:flex;align-items:center;gap:10px;}
+  .bl{font-size:12px;color:var(--gray);width:150px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bt{flex:1;height:7px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;}
+  .bf{height:100%;border-radius:100px;width:0;transition:width 1s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--blue),var(--blue2));}
+  .bf.r{background:linear-gradient(90deg,#EF4444,#F87171);}
+  .bf.g{background:linear-gradient(90deg,#10B981,#34D399);}
+  .bf.o{background:linear-gradient(90deg,#F97316,#FDBA74);}
+  .bf.y{background:linear-gradient(90deg,#F59E0B,#FCD34D);}
+  .bf.p{background:linear-gradient(90deg,#8B5CF6,#A78BFA);}
+  .bn{font-family:'DM Mono',monospace;font-size:11px;color:var(--white);width:36px;text-align:right;}
+  .bot-list{display:flex;flex-direction:column;gap:10px;}
+  .bot-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);}
+  .bot-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .bot-info{flex:1;}
+  .bot-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+  .bot-meta{font-size:10px;color:var(--gray);}
+  .bot-st{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;}
+  .dot{width:6px;height:6px;border-radius:50%;}
+  .dg{background:var(--green);box-shadow:0 0 5px var(--green);}
+  .dy{background:var(--yellow);}
+  .ugrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:14px;}
+  .uc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:transform .2s,border-color .2s;}
+  .uc:hover{transform:translateY(-2px);border-color:rgba(37,99,235,.3);}
+  .uh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .un{font-size:13px;font-weight:700;}
+  .uco{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(37,99,235,.15);color:var(--blue2);}
+  .us2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .ust{text-align:center;padding:8px;background:rgba(255,255,255,.03);border-radius:8px;}
+  .usv{font-family:'Inter',sans-serif;font-weight:800;font-size:20px;}
+  .usl{font-size:10px;color:var(--gray);margin-top:2px;}
+  .ilist{display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;}
+  .iitem{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);}
+  .iname{font-size:12px;font-weight:500;flex:1;}
+  .iemail{font-size:11px;color:var(--gray);font-family:'DM Mono',monospace;}
+  .alert{padding:12px 16px;border-radius:10px;font-size:12px;margin-top:14px;}
+  .ar{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);}
+  .ao{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);color:var(--orange);}
+  .ap{background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:var(--purple);}
+  .roi-item{padding:14px;border-radius:10px;margin-bottom:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);}
+  .roi-val{font-family:'Inter',sans-serif;font-weight:800;font-size:26px;}
+  .roi-lbl{font-size:11px;color:var(--gray);margin-top:3px;}
+  .sec{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:10px;margin:24px 0 14px;}
+  .sec::after{content:'';flex:1;height:1px;background:var(--border);}
+  .empty{padding:24px;text-align:center;color:var(--gray);font-size:13px;}
+  .err{padding:12px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);font-size:12px;}
+  .ca-perfil{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
+  .ca-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+  .ca-val{font-family:'Inter',sans-serif;font-weight:800;font-size:26px;}
+  .ca-lbl{font-size:11px;color:var(--gray);margin-top:4px;}
+  ::-webkit-scrollbar{width:5px;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;animation:fadeUp .3s ease;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .modal-title{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:var(--white);}
+  .modal-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--gray);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+  .modal-close:hover{background:rgba(255,255,255,.15);color:var(--white);}
+  .roi-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,.03);border:1px solid var(--border);}
+  .roi-row-name{font-size:12px;color:var(--gray);}
+  .roi-row-vals{display:flex;gap:16px;text-align:right;}
+  .roi-row-h{font-size:12px;color:var(--yellow);font-weight:600;}
+  .roi-row-r{font-size:12px;color:var(--green);font-weight:600;}
+  .info-btn{width:22px;height:22px;border-radius:50%;background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:var(--blue2);cursor:pointer;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:8px;transition:all .2s;}
+  .info-btn:hover{background:var(--blue);color:white;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-icon">RA</div>
+      <div><div class="logo-name">Rede Ápice</div><div class="logo-sub">Dashboard de Governança TI</div></div>
+    </div>
+    <div class="hdr-r">
+      <div class="api-pill" id="api-pill"><div class="pulse"></div><span id="api-txt">Conectando...</span></div>
+      <div class="clock" id="clock"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="page-top">
+    <h1>Governança de <em>Identidades & Acessos</em></h1>
+    <p>Dados em tempo real via API · Rede Ápice de Ensino</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="setTab('all')">Visão Geral</div>
+    <div class="tab" onclick="setTab('ms365')">MS365</div>
+    <div class="tab" onclick="setTab('activesoft')">Activesoft</div>
+    <div class="tab" onclick="setTab('classapp')">ClassApp</div>
+    <div class="tab" onclick="setTab('festpay')">FestPay</div>
+  </div>
+
+  <!-- VISÃO GERAL -->
+  <div class="view active" id="view-all">
+    <div class="kpi-row">
+      <div class="kpi" style="--ac:var(--blue2)"><div class="kpi-icon">👥</div><div class="kpi-val" id="g-total"><div class="shimmer"></div></div><div class="kpi-label">Usuários MS365</div><div class="kpi-sub" id="g-total-sub">Carregando...</div></div>
+      <div class="kpi" style="--ac:var(--red)"><div class="kpi-icon">🔴</div><div class="kpi-val" id="g-inativos"><div class="shimmer"></div></div><div class="kpi-label">Inativos MS365</div><div class="kpi-sub">Credencial bloqueada</div></div>
+      <div class="kpi" style="--ac:var(--orange)"><div class="kpi-icon">🔒</div><div class="kpi-val" id="g-grupos"><div class="shimmer"></div></div><div class="kpi-label">Grupos Entra ID</div><div class="kpi-sub" id="g-grupos-sub">Carregando...</div></div>
+      <div class="kpi" style="--ac:var(--green)"><div class="kpi-icon">🏢</div><div class="kpi-val" id="g-units"><div class="shimmer"></div></div><div class="kpi-label">Usuários Activesoft</div><div class="kpi-sub">Todas as unidades</div></div>
+      <div class="kpi" style="--ac:var(--purple)"><div class="kpi-icon">📱</div><div class="kpi-val" id="g-classapp"><div class="shimmer"></div></div><div class="kpi-label">Usuários ClassApp</div><div class="kpi-sub" id="g-classapp-sub">Carregando...</div></div>
+      <div class="kpi" style="--ac:#F59E0B"><div class="kpi-icon">🎉</div><div class="kpi-val" id="g-festpay"><div class="shimmer"></div></div><div class="kpi-label">Usuários FestPay</div><div class="kpi-sub" id="g-festpay-sub">Carregando...</div></div>
+      <div class="kpi" style="--ac:var(--yellow)"><div class="kpi-icon">⏱️</div><div class="kpi-val" id="g-horas">—</div><div class="kpi-label">Economia/semana</div><div class="kpi-sub" id="g-horas-sub">Carregando...</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Status dos Bots</div><span class="badge b-green">6 online</span></div>
+        <div class="bot-list">
+          <div class="bot-item"><div class="bot-ico" style="background:rgba(239,68,68,.1)">🤖</div><div class="bot-info"><div class="bot-name">Bot Usuários Inativos</div><div class="bot-meta">SharePoint · Seg 08:00</div></div><div class="bot-st"><div class="dot dg"></div><span style="color:var(--green)">OK</span></div></div>
+          <div class="bot-item"><div class="bot-ico" style="background:rgba(37,99,235,.1)">🔐</div><div class="bot-info"><div class="bot-name">Bot Proprietários</div><div class="bot-meta">Entra ID · Seg 08:30</div></div><div class="bot-st"><div class="dot dg"></div><span style="color:var(--green)">OK</span></div></div>
+          <div class="bot-item"><div class="bot-ico" style="background:rgba(16,185,129,.1)">📊</div><div class="bot-info"><div class="bot-name">Bot Activesoft OVM</div><div class="bot-meta">SigaWeb · Seg 09:00</div></div><div class="bot-st"><div class="dot dg"></div><span style="color:var(--green)">OK</span></div></div>
+          <div class="bot-item"><div class="bot-ico" style="background:rgba(16,185,129,.1)">📊</div><div class="bot-info"><div class="bot-name">Bot Activesoft APS</div><div class="bot-meta">SigaWeb · Seg 09:05</div></div><div class="bot-st"><div class="dot dg"></div><span style="color:var(--green)">OK</span></div></div>
+          <div class="bot-item"><div class="bot-ico" style="background:rgba(16,185,129,.1)">📊</div><div class="bot-info"><div class="bot-name">Bot Activesoft DH1/DH2</div><div class="bot-meta">SigaWeb · Seg 09:10</div></div><div class="bot-st"><div class="dot dg"></div><span style="color:var(--green)">OK</span></div></div>
+          <div class="bot-item"><div class="bot-ico" style="background:rgba(139,92,246,.1)">📱</div><div class="bot-info"><div class="bot-name">Bot ClassApp</div><div class="bot-meta">SharePoint · Dia 1º 08:00</div></div><div class="bot-st"><div class="dot dg"></div><span style="color:var(--green)">OK</span></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Retorno Financeiro <button class="info-btn" onclick="document.getElementById('modal-roi').classList.add('open')">ℹ</button></div><span class="badge b-green" id="roi-badge">ROI ∞</span></div>
+        <div class="roi-item" style="border-left:3px solid var(--green)"><div class="roi-val" style="color:var(--green)" id="roi-mensal">—</div><div class="roi-lbl">Economia mensal estimada</div></div>
+        <div class="roi-item" style="border-left:3px solid var(--blue2)"><div class="roi-val" style="color:var(--blue2)" id="roi-anual">—</div><div class="roi-lbl">Economia anual estimada</div></div>
+        <div class="roi-item" style="border-left:3px solid var(--yellow)"><div class="roi-val" style="color:var(--yellow)" id="roi-horas">—</div><div class="roi-lbl">Horas economizadas por semana</div></div>
+        <div class="roi-item" style="border-left:3px solid var(--gray)"><div class="roi-val" style="color:var(--gray)">R$ 0</div><div class="roi-lbl">Custo de implementação</div></div>
+      </div>
+    </div>
+    <div class="sec">Visão por Unidade — Activesoft</div>
+    <div class="ugrid" id="g-units-grid"><div class="empty">Carregando...</div></div>
+  </div>
+
+  <!-- MS365 -->
+  <div class="view" id="view-ms365">
+    <div class="kpi-row">
+      <div class="kpi" style="--ac:var(--blue2)"><div class="kpi-icon">👥</div><div class="kpi-val" id="m-total">—</div><div class="kpi-label">Total Usuários</div></div>
+      <div class="kpi" style="--ac:var(--green)"><div class="kpi-icon">✅</div><div class="kpi-val" id="m-ativos">—</div><div class="kpi-label">Ativos</div></div>
+      <div class="kpi" style="--ac:var(--red)"><div class="kpi-icon">🔴</div><div class="kpi-val" id="m-inativos">—</div><div class="kpi-label">Inativos</div></div>
+      <div class="kpi" style="--ac:var(--yellow)"><div class="kpi-icon">📊</div><div class="kpi-val" id="m-pct">—</div><div class="kpi-label">% Inativos</div></div>
+      <div class="kpi" style="--ac:var(--orange)"><div class="kpi-icon">🔒</div><div class="kpi-val" id="m-grupos">—</div><div class="kpi-label">Total Grupos</div><div class="kpi-sub" id="m-grupos-sub">Entra ID</div></div>
+      <div class="kpi" style="--ac:var(--teal,#0891B2)"><div class="kpi-icon">🏫</div><div class="kpi-val" id="m-teams">—</div><div class="kpi-label">Equipes Teams</div><div class="kpi-sub" id="m-teams-sub">M365 / Teams</div></div>
+      <div class="kpi" style="--ac:var(--purple)"><div class="kpi-icon">👑</div><div class="kpi-val" id="m-admins">—</div><div class="kpi-label">Administradores</div><div class="kpi-sub" id="m-admins-sub">Security grupos</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Distribuição de Usuários</div><span class="badge b-blue" id="m-badge">...</span></div>
+        <div id="m-bars"><div class="empty">Carregando...</div></div>
+        <div id="m-alert"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Lista de Usuários Inativos</div><span class="badge b-red" id="m-inativos-badge">...</span></div>
+        <div id="m-inativos-list"><div class="empty">Carregando...</div></div>
+      </div>
+    </div>
+    <div class="sec">Grupos Entra ID</div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Distribuição por Tipo de Grupo</div><span class="badge b-blue" id="e-badge">...</span></div>
+        <div id="e-bars"><div class="empty">Carregando...</div></div>
+        <div id="e-alert"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Grupos por Tipo</div><span class="badge b-orange" id="e-dist-badge">...</span></div>
+        <div class="kpi-row" style="margin:0">
+          <div class="kpi" style="--ac:var(--blue2)"><div class="kpi-icon">🔒</div><div class="kpi-val" id="e-total">—</div><div class="kpi-label">Total Grupos</div></div>
+          <div class="kpi" style="--ac:var(--blue)"><div class="kpi-icon">🏢</div><div class="kpi-val" id="e-m365">—</div><div class="kpi-label">M365 / Teams</div></div>
+          <div class="kpi" style="--ac:var(--orange)"><div class="kpi-icon">🛡️</div><div class="kpi-val" id="e-sec">—</div><div class="kpi-label">Security</div></div>
+          <div class="kpi" style="--ac:var(--green)"><div class="kpi-icon">📧</div><div class="kpi-val" id="e-dist">—</div><div class="kpi-label">Distribution</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTRA ID dentro da aba MS365 -->
+  <div id="ms365-entra-section" style="display:none" class="view active">
+    <div class="sec">Grupos Entra ID</div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-head"><div class="card-title">Distribuição por Tipo de Grupo</div><span class="badge b-blue" id="e-badge">...</span></div>
+      <div id="e-bars"><div class="empty">Carregando...</div></div>
+      <div id="e-alert"></div>
+    </div>
+  </div>
+
+  <!-- ACTIVESOFT -->
+  <div class="view" id="view-activesoft">
+    <div class="kpi-row">
+      <div class="kpi" style="--ac:var(--blue2)"><div class="kpi-icon">👥</div><div class="kpi-val" id="a-total">—</div><div class="kpi-label">Total Usuários</div><div class="kpi-sub">Todas as unidades</div></div>
+      <div class="kpi" style="--ac:var(--green)"><div class="kpi-icon">✅</div><div class="kpi-val" id="a-ativos">—</div><div class="kpi-label">Ativos</div></div>
+      <div class="kpi" style="--ac:var(--red)"><div class="kpi-icon">🔴</div><div class="kpi-val" id="a-inativos">—</div><div class="kpi-label">Inativos</div></div>
+      <div class="kpi" style="--ac:var(--yellow)"><div class="kpi-icon">👑</div><div class="kpi-val" id="a-admins">—</div><div class="kpi-label">Admins</div></div>
+      <div class="kpi" style="--ac:var(--orange)"><div class="kpi-icon">🏫</div><div class="kpi-val">6</div><div class="kpi-label">Unidades</div></div>
+    </div>
+    <div class="sec">Detalhamento por Unidade</div>
+    <div class="ugrid" id="a-units-grid"><div class="empty">Carregando...</div></div>
+    <div class="sec">Inativos por Unidade</div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Comparativo de Inativos</div><span class="badge b-red" id="a-inativos-badge">...</span></div>
+      <div id="a-bars"><div class="empty">Carregando...</div></div>
+    </div>
+  </div>
+
+  <!-- CLASSAPP -->
+  <div class="view" id="view-classapp">
+    <div class="kpi-row">
+      <div class="kpi" style="--ac:var(--purple)"><div class="kpi-icon">📱</div><div class="kpi-val" id="ca-total">—</div><div class="kpi-label">Total Usuários</div></div>
+      <div class="kpi" style="--ac:var(--blue2)"><div class="kpi-icon">👥</div><div class="kpi-val" id="ca-grupos">—</div><div class="kpi-label">Grupos Ativos</div></div>
+      <div class="kpi" style="--ac:var(--yellow)"><div class="kpi-icon">📧</div><div class="kpi-val" id="ca-sem-email">—</div><div class="kpi-label">Sem E-mail</div></div>
+      <div class="kpi" style="--ac:var(--orange)"><div class="kpi-icon">📋</div><div class="kpi-val" id="ca-sem-grupo">—</div><div class="kpi-label">Sem Grupo</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Usuários por Perfil</div><span class="badge b-purple" id="ca-badge">...</span></div>
+        <div id="ca-perfil-bars"><div class="empty">Carregando...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Alertas</div><span class="badge b-yellow">Atenção</span></div>
+        <div id="ca-alertas"><div class="empty">Carregando...</div></div>
+        <div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center" id="ca-atualizado"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FESTPAY -->
+  <div class="view" id="view-festpay">
+    <div class="kpi-row">
+      <div class="kpi" style="--ac:#F59E0B"><div class="kpi-icon">🎉</div><div class="kpi-val" id="fp-total">—</div><div class="kpi-label">Total Usuários</div></div>
+      <div class="kpi" style="--ac:var(--green)"><div class="kpi-icon">✅</div><div class="kpi-val" id="fp-ativos">—</div><div class="kpi-label">Ativos</div></div>
+      <div class="kpi" style="--ac:var(--red)"><div class="kpi-icon">🔴</div><div class="kpi-val" id="fp-inativos">—</div><div class="kpi-label">Inativos</div></div>
+      <div class="kpi" style="--ac:var(--yellow)"><div class="kpi-icon">📧</div><div class="kpi-val" id="fp-sem-email">—</div><div class="kpi-label">Sem E-mail</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Usuários por Perfil</div><span class="badge b-yellow" id="fp-badge">...</span></div>
+        <div id="fp-perfil-bars"><div class="empty">Carregando...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Alertas</div><span class="badge b-yellow">Atenção</span></div>
+        <div id="fp-alertas"><div class="empty">Carregando...</div></div>
+        <div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center" id="fp-atualizado"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = 'http://localhost:8000';
+const NOMES = {OVM:'Obj. Vila Merces',APS:'Ápice Pinheiros',MARILLAC:'Marillac',TUTOR:'Tutor',DOMHENRIQUE:'Dom Henrique 1',DOMHENRIQUE2:'Dom Henrique 2'};
+
+function tick(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('pt-BR')+' · '+n.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});}
+tick();setInterval(tick,1000);
+
+function setTab(name){
+  const names=['all','ms365','activesoft','classapp','festpay'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  animateBars();
+}
+
+function animateBars(){
+  setTimeout(()=>{
+    document.querySelectorAll('.bf[data-val]').forEach(b=>{
+      b.style.width=Math.min(parseFloat(b.dataset.val)/parseFloat(b.dataset.max)*100,100)+'%';
+    });
+  },100);
+}
+
+async function checkStatus(){
+  const pill=document.getElementById('api-pill'),txt=document.getElementById('api-txt');
+  try{const r=await fetch(`${API}/`,{signal:AbortSignal.timeout(3000)});if(r.ok){pill.classList.remove('off');txt.textContent='API online';}else throw new Error();}
+  catch{pill.classList.add('off');txt.textContent='API offline';}
+}
+
+async function loadMS365(){
+  try{
+    const d=await(await fetch(`${API}/api/ms365/resumo`)).json();
+    const pct=d.total?Math.round(d.inativos/d.total*100):0;
+    document.getElementById('g-total').textContent=d.total?.toLocaleString()??'—';
+    document.getElementById('g-inativos').textContent=d.inativos?.toLocaleString()??'—';
+    document.getElementById('g-total-sub').textContent=`${d.ativos} ativos · ${d.inativos} inativos`;
+    document.getElementById('m-total').textContent=d.total?.toLocaleString();
+    document.getElementById('m-ativos').textContent=d.ativos?.toLocaleString();
+    document.getElementById('m-inativos').textContent=d.inativos?.toLocaleString();
+    document.getElementById('m-pct').textContent=pct+'%';
+    document.getElementById('m-badge').textContent=`${d.total} usuários`;
+    document.getElementById('m-bars').innerHTML=`<div class="bars"><div class="br"><div class="bl">Ativos</div><div class="bt"><div class="bf g" data-val="${d.ativos}" data-max="${d.total}"></div></div><div class="bn">${d.ativos.toLocaleString()}</div></div><div class="br"><div class="bl">Inativos</div><div class="bt"><div class="bf r" data-val="${d.inativos}" data-max="${d.total}"></div></div><div class="bn">${d.inativos.toLocaleString()}</div></div></div>`;
+    document.getElementById('m-alert').innerHTML=`<div class="alert ar">⚠️ ${pct}% dos usuários estão inativos — ${d.inativos} contas com credencial bloqueada</div>`;
+    loadInativos();animateBars();
+  }catch(e){document.getElementById('m-bars').innerHTML=`<div class="err">❌ ${e.message}</div>`;}
+}
+
+async function loadInativos(){
+  try{
+    const d=await(await fetch(`${API}/api/ms365/inativos`)).json();
+    document.getElementById('m-inativos-badge').textContent=`${d.length} usuários`;
+    document.getElementById('m-inativos-list').innerHTML=`<div class="ilist">${d.slice(0,60).map(u=>`<div class="iitem"><div style="width:26px;height:26px;border-radius:7px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">🔴</div><div style="flex:1;min-width:0"><div class="iname">${u.nome||'—'}</div><div class="iemail">${u.email||'—'}</div></div></div>`).join('')}${d.length>60?`<div class="empty">+ ${d.length-60} outros...</div>`:''}</div>`;
+  }catch(e){document.getElementById('m-inativos-list').innerHTML=`<div class="err">❌ ${e.message}</div>`;}
+}
+
+async function loadEntra(){
+  try{
+    const d=await(await fetch(`${API}/api/entra/resumo`)).json();
+    const m365=d.por_tipo?.['Microsoft 365 / Teams']||0,sec=d.por_tipo?.['Security']||0,dist=d.por_tipo?.['Distribution']||0;
+    document.getElementById('g-grupos').textContent=d.total??'—';
+    document.getElementById('g-grupos-sub').textContent=`${m365} M365 · ${sec} Security`;
+    document.getElementById('e-total').textContent=d.total??'—';
+    document.getElementById('e-m365').textContent=m365;
+    document.getElementById('e-sec').textContent=sec;
+    document.getElementById('e-dist').textContent=dist;
+    document.getElementById('e-badge').textContent=`${d.total} grupos`;
+    // Atualiza KPIs na aba MS365
+    document.getElementById('m-grupos').textContent=d.total??'—';
+    document.getElementById('m-grupos-sub').textContent=`${m365} M365 · ${sec} Security`;
+    document.getElementById('m-teams').textContent=m365??'—';
+    document.getElementById('m-teams-sub').textContent=`grupos M365 e Teams`;
+    document.getElementById('m-admins').textContent=sec??'—';
+    document.getElementById('m-admins-sub').textContent=`grupos de segurança`;
+    const max=Math.max(...Object.values(d.por_tipo||{}),1);
+    const cores={'Microsoft 365 / Teams':'','Security':'o','Distribution':'g','Outro':'y'};
+    document.getElementById('e-bars').innerHTML=`<div class="bars">${Object.entries(d.por_tipo||{}).map(([t,q])=>`<div class="br"><div class="bl">${t}</div><div class="bt"><div class="bf ${cores[t]||''}" data-val="${q}" data-max="${max}"></div></div><div class="bn">${q}</div></div>`).join('')}</div>`;
+    document.getElementById('e-alert').innerHTML=`<div class="alert ao">ℹ️ Para ver proprietários acesse /api/entra/grupos</div>`;
+    animateBars();
+  }catch(e){document.getElementById('e-bars').innerHTML=`<div class="err">❌ ${e.message}</div>`;}
+}
+
+async function loadActivesoft(){
+  try{
+    const units=await(await fetch(`${API}/api/activesoft/unidades`)).json();
+    const total=units.reduce((s,u)=>s+(u.total||0),0);
+    const ativos=units.reduce((s,u)=>s+(u.ativos||0),0);
+    const inativos=units.reduce((s,u)=>s+(u.inativos||0),0);
+    const admins=units.reduce((s,u)=>s+(u.admins||0),0);
+    document.getElementById('g-units').textContent=total;
+    document.getElementById('a-total').textContent=total;
+    document.getElementById('a-ativos').textContent=ativos;
+    document.getElementById('a-inativos').textContent=inativos;
+    document.getElementById('a-admins').textContent=admins;
+    document.getElementById('a-inativos-badge').textContent=`${inativos} inativos`;
+    const html=units.map(u=>u.erro?`<div class="uc" style="opacity:.5"><div class="uh"><div class="un">${NOMES[u.unidade]||u.unidade}</div><div class="uco">${u.unidade}</div></div><div class="err" style="font-size:11px">Token não configurado</div></div>`:`<div class="uc"><div class="uh"><div class="un">${NOMES[u.unidade]||u.unidade}</div><div class="uco">${u.unidade}</div></div><div class="us2"><div class="ust"><div class="usv" style="color:var(--blue2)">${u.total}</div><div class="usl">Total</div></div><div class="ust"><div class="usv" style="color:var(--green)">${u.ativos}</div><div class="usl">Ativos</div></div><div class="ust"><div class="usv" style="color:var(--red)">${u.inativos}</div><div class="usl">Inativos</div></div><div class="ust"><div class="usv" style="color:var(--yellow)">${u.admins}</div><div class="usl">Admins</div></div></div></div>`).join('');
+    document.getElementById('g-units-grid').innerHTML=html;
+    document.getElementById('a-units-grid').innerHTML=html;
+    const maxI=Math.max(...units.map(u=>u.inativos||0),1);
+    document.getElementById('a-bars').innerHTML=`<div class="bars">${units.map(u=>`<div class="br"><div class="bl">${NOMES[u.unidade]||u.unidade}</div><div class="bt"><div class="bf r" data-val="${u.inativos||0}" data-max="${maxI}"></div></div><div class="bn">${u.inativos||0}</div></div>`).join('')}</div>`;
+    animateBars();
+  }catch(e){document.getElementById('a-units-grid').innerHTML=`<div class="err">❌ ${e.message}</div>`;}
+}
+
+async function loadClassApp(){
+  try{
+    const d=await(await fetch(`${API}/api/classapp/resumo`)).json();
+
+    // KPIs visão geral
+    document.getElementById('g-classapp').textContent=d.total?.toLocaleString()??'—';
+    document.getElementById('g-classapp-sub').textContent=`${Object.keys(d.por_perfil||{}).length} perfis · ${d.total_grupos} grupos`;
+
+    // KPIs aba classapp
+    document.getElementById('ca-total').textContent=d.total?.toLocaleString()??'—';
+    document.getElementById('ca-grupos').textContent=d.total_grupos??'—';
+    document.getElementById('ca-sem-email').textContent=d.sem_email?.toLocaleString()??'—';
+    document.getElementById('ca-sem-grupo').textContent=d.sem_grupo?.toLocaleString()??'—';
+    document.getElementById('ca-badge').textContent=`${d.total} usuários`;
+    document.getElementById('ca-atualizado').textContent=`Atualizado em: ${d.atualizado_em}`;
+
+    // Barras por perfil
+    const perfis = d.por_perfil || {};
+    const cores = {Aluno:'p', Funcionário:'', Administrador:'y', Responsável:'g'};
+    const max = Math.max(...Object.values(perfis), 1);
+    document.getElementById('ca-perfil-bars').innerHTML=`<div class="bars">${
+      Object.entries(perfis).sort((a,b)=>b[1]-a[1]).map(([p,q])=>`
+        <div class="br">
+          <div class="bl">${p}</div>
+          <div class="bt"><div class="bf ${cores[p]||'o'}" data-val="${q}" data-max="${max}"></div></div>
+          <div class="bn">${q.toLocaleString()}</div>
+        </div>`).join('')
+    }</div>`;
+
+    // Alertas
+    const alertas = [];
+    if(d.sem_email > 0) alertas.push(`<div class="alert ar">⚠️ ${d.sem_email.toLocaleString()} usuários sem e-mail cadastrado</div>`);
+    if(d.sem_grupo > 0) alertas.push(`<div class="alert ao">📋 ${d.sem_grupo.toLocaleString()} usuários sem grupo atribuído</div>`);
+    if(alertas.length === 0) alertas.push(`<div class="alert" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)">✅ Nenhum alerta pendente</div>`);
+    document.getElementById('ca-alertas').innerHTML = alertas.join('');
+
+    animateBars();
+  }catch(e){
+    document.getElementById('ca-perfil-bars').innerHTML=`<div class="err">❌ ${e.message}</div>`;
+  }
+}
+
+
+async function loadROI(){
+  try{
+    const d=await(await fetch(`${API}/api/roi`)).json();
+    document.getElementById('roi-mensal').textContent='R$ '+d.economia_mensal?.toLocaleString('pt-BR')??'—';
+    document.getElementById('roi-anual').textContent='R$ '+d.economia_anual?.toLocaleString('pt-BR')??'—';
+    document.getElementById('roi-horas').textContent=d.total_horas_semana+'h / semana';
+    document.getElementById('g-horas').textContent=d.total_horas_semana+'h';
+    document.getElementById('g-horas-sub').textContent=d.bots?.length+' automações ativas';
+    document.getElementById('roi-badge').textContent='ROI '+d.roi_percentual;
+    // Preenche modal
+    if(d.bots){
+      document.getElementById('modal-roi-rows').innerHTML=d.bots.map(b=>`
+        <div class="roi-row">
+          <div class="roi-row-name">${b.nome}</div>
+          <div class="roi-row-vals">
+            <span class="roi-row-h">${b.horas_semana}h</span>
+            <span class="roi-row-r">R$ ${b.economia_mes.toLocaleString('pt-BR')}</span>
+          </div>
+        </div>`).join('');
+      document.getElementById('modal-roi-mensal').textContent='R$ '+d.economia_mensal.toLocaleString('pt-BR');
+      document.getElementById('modal-roi-total').textContent='R$ '+d.economia_anual.toLocaleString('pt-BR');
+    }
+  }catch(e){console.error('ROI erro:',e);}
+}
+
+async function loadFestPay(){
+  try{
+    const d=await(await fetch(`${API}/api/festpay/resumo`)).json();
+    document.getElementById('g-festpay').textContent=d.total?.toLocaleString()??'—';
+    document.getElementById('g-festpay-sub').textContent=`${d.ativos} ativos · ${d.inativos} inativos`;
+    document.getElementById('fp-total').textContent=d.total?.toLocaleString()??'—';
+    document.getElementById('fp-ativos').textContent=d.ativos?.toLocaleString()??'—';
+    document.getElementById('fp-inativos').textContent=d.inativos?.toLocaleString()??'—';
+    document.getElementById('fp-sem-email').textContent=d.sem_email?.toLocaleString()??'—';
+    document.getElementById('fp-badge').textContent=`${d.total} usuarios`;
+    document.getElementById('fp-atualizado').textContent=`Atualizado em: ${d.atualizado_em}`;
+    const perfis=d.por_perfil||{};
+    const max=Math.max(...Object.values(perfis),1);
+    const cores={Administrador:'y',Operador:'g',Financeiro:'o',Supervisor:'p'};
+    document.getElementById('fp-perfil-bars').innerHTML='<div class="bars">'+Object.entries(perfis).sort((a,b)=>b[1]-a[1]).map(([p,q])=>'<div class="br"><div class="bl">'+p+'</div><div class="bt"><div class="bf '+(cores[p]||'')+'" data-val="'+q+'" data-max="'+max+'"></div></div><div class="bn">'+q.toLocaleString()+'</div></div>').join('')+'</div>';
+    const alertas=[];
+    if(d.sem_email>0) alertas.push('<div class="alert ar">⚠️ '+d.sem_email.toLocaleString()+' usuarios sem e-mail cadastrado</div>');
+    if(d.sem_cpf>0) alertas.push('<div class="alert ao">📋 '+d.sem_cpf.toLocaleString()+' usuarios sem CPF cadastrado</div>');
+    if(d.inativos>0) alertas.push('<div class="alert ao">🔴 '+d.inativos.toLocaleString()+' usuarios inativos</div>');
+    if(alertas.length===0) alertas.push('<div class="alert" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green)">✅ Nenhum alerta pendente</div>');
+    document.getElementById('fp-alertas').innerHTML=alertas.join('');
+    animateBars();
+  }catch(e){document.getElementById('fp-perfil-bars').innerHTML='<div class="err">❌ '+e.message+'</div>';}
+}
+
+async function loadAll(){
+  await checkStatus();
+  await Promise.all([loadMS365(),loadEntra(),loadActivesoft(),loadClassApp(),loadFestPay(),loadROI()]);
+}
+
+loadAll();
+setInterval(loadAll,5*60*1000);
+</script>
+<!-- MODAL ROI -->
+<div class="modal-overlay" id="modal-roi" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">💰 Detalhamento do Retorno Financeiro</div>
+      <button class="modal-close" onclick="document.getElementById('modal-roi').classList.remove('open')">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--gray);margin-bottom:16px">Calculo baseado em <strong style="color:var(--white)">R$ 15/hora</strong> de custo de trabalho manual estimado por automacao ativa.</p>
+    <div style="display:flex;justify-content:space-between;padding:6px 14px;margin-bottom:4px;">
+      <span style="font-size:11px;color:var(--gray);font-weight:700">AUTOMACAO</span>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:11px;color:var(--yellow);font-weight:700">H/SEM</span>
+        <span style="font-size:11px;color:var(--green);font-weight:700">R$/MES</span>
+      </div>
+    </div>
+    <div id="modal-roi-rows"><div style="text-align:center;color:var(--gray);font-size:12px;padding:20px">Carregando...</div></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--gray)">Custo de implementacao</span>
+      <span style="font-size:14px;font-weight:700;color:var(--green)">R$ 0,00</span>
+    </div>
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:var(--white);font-weight:600">Economia mensal</span>
+      <span style="font-size:16px;font-weight:700;color:var(--blue2)" id="modal-roi-mensal">—</span>
+    </div>
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:var(--white);font-weight:600">Total economia/ano</span>
+      <span style="font-size:18px;font-weight:800;color:var(--green)" id="modal-roi-total">—</span>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);">
+      <p style="font-size:11px;color:var(--green);text-align:center;margin:0">ROI infinito — investimento zero, retorno continuo</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

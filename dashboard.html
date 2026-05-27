@@ -309,7 +309,7 @@
 </main>
 
 <script>
-const API = getAPI();
+const API = 'http://localhost:8000';
 const NOMES = {OVM:'Obj. Vila Merces',APS:'Ápice Pinheiros',MARILLAC:'Marillac',TUTOR:'Tutor',DOMHENRIQUE:'Dom Henrique 1',DOMHENRIQUE2:'Dom Henrique 2'};
 
 function tick(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('pt-BR')+' · '+n.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});}
